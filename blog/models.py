@@ -1,8 +1,7 @@
 from django.db import models
 
-
 class Blog(models.Model):
-    pub_date = models.DateField()
+    pub_date = models.DateTimeField()
     headline = models.CharField(max_length=200)
     content = models.TextField()
 

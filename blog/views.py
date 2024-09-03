@@ -1,26 +1,78 @@
-from django.shortcuts import render
-from django.shortcuts import get_object_or_404, redirect
 
+
+# import logging
+
+# logger = logging.getLogger('django_debug')
+
+# def some_view(request):
+#     logger.debug("This is a debug message")
+#     logger.error("This is an error message")
+
+
+
+
+
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from rest_framework import status
+# from .models import Blog
+# from .serializers import BlogSerializer
+
+# @api_view(['GET', 'POST'])
+# def blog_post_list(request):
+#     if request.method == 'GET':
+#         blog_posts = Blog.objects.all()
+#         serializer = BlogSerializer(blog_posts, many=True)
+#         return Response(serializer.data)
+
+#     elif request.method == 'POST':
+#         serializer = BlogSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 from .models import Blog
+from .serializers import BlogSerializer
+import logging
 
+logger = logging.getLogger('django_debug')
 
-# def year_archive(request, year):
-#     a_list = Blog.objects.filter(pub_date__year=year)
-#     context = {"year": year, "article_list": a_list}
-#     return render(request, "news/year_archive.html", context)
-
-
-
+@api_view(['GET', 'POST'])
 def blog_post_list(request):
     if request.method == 'GET':
-        blog_posts = Blog.objects.all()
-        return render(request, {'blog_posts': blog_posts})
+        try:
+            blog_posts = Blog.objects.all()
+            serializer = BlogSerializer(blog_posts, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error retrieving blog posts: {e}", exc_info=True)
+            return Response({"detail": "Error retrieving blog posts"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     elif request.method == 'POST':
-        # Use case: Create a new blog post
-        pub_date = request.POST['pub_date']
-        headline = request.POST['headline']
-        content = request.POST['content']
-        new_post = Blog.objects.create(pub_date=pub_date, headline=headline, content=content)
-        new_post.save()
-        return redirect('blog-post-list')
+        try:
+            serializer = BlogSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Error creating blog post: {e}", exc_info=True)
+            return Response({"detail": "Error creating blog post"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
